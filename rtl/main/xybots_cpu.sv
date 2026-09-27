@@ -94,11 +94,16 @@ module xybots_cpu
 
 	// ---------------------------------------------------------------- phases
 	// `ph` is the clk_sys position inside one CPU clock, re-zeroed by every
-	// ce_7m tick so the two enables can never drift apart or double up.
+	// ce_7m tick so the two enables can never drift apart or double up.  It
+	// saturates at 7 instead of wrapping.  While ce_7m runs that changes
+	// nothing, because the tick re-zeroes it on the very cycle it reaches 7.
+	// While the OSD pause withholds ce_7m (xybots_core), a wrapping counter
+	// would keep firing en_phi2 every 8 clk_sys on its own; saturated, each
+	// en_phi1 is followed by exactly one en_phi2 and then the CPU stands still.
 	logic [2:0] ph;
 	always_ff @(posedge clk) begin
-		if (ce_7m) ph <= 3'd0;
-		else       ph <= ph + 3'd1;
+		if (ce_7m)             ph <= 3'd0;
+		else if (ph != 3'd7)   ph <= ph + 3'd1;
 	end
 
 	wire en_phi1 = ce_7m;          // CPU clock high phase (= the ce_7m tick)

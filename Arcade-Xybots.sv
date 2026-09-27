@@ -89,6 +89,9 @@ localparam CONF_STR = {
 	// from the game's own self-test.  A "DIP;" line here
 	// would ask MiSTer Main to splice in a menu the MRA can never populate.
 	"O[6],Service,Off,On;",
+	// Freeze the game while the OSD is open, as other MiSTer arcade cores do.
+	// Default On (status[7] = 0).  See "OSD pause" in rtl/xybots_core.sv.
+	"O[7],Pause when OSD is open,On,Off;",
 	"-;",
 	"T[0],Reset;",
 	// Control panel (per player): 8-way stick + Fire + Twist Left + Twist Right
@@ -201,6 +204,10 @@ wire coin1     = joystick_0[8];
 wire coin2     = joystick_1[8];
 wire self_test = status[6];
 
+// OSD pause: a level request; xybots_core starts and ends the freeze on a
+// frame boundary so the game resumes exactly where it stopped.
+wire pause_req = OSD_STATUS & ~status[7];
+
 ///////////////////////   CORE   /////////////////////////////////
 
 wire        ce_pix;
@@ -211,6 +218,7 @@ wire signed [15:0] aud_l, aud_r;
 xybots_core u_core
 (
 	.clk_sys(clk_sys), .reset(reset), .init_reset(~pll_locked),
+	.pause(pause_req),
 
 	.ioctl_download(ioctl_download), .ioctl_wr(ioctl_wr), .ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout), .ioctl_index(ioctl_index), .ioctl_wait(ioctl_wait),

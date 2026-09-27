@@ -45,6 +45,26 @@
 //  being produced — xybots_syngen, xybots_video and xybots_mo all take this one
 //  wire and all read it that way.
 //
+//  ---- OSD pause -----------------------------------------------------------
+//
+//  Not a board feature: MiSTer freezes the game while the OSD is open.  The
+//  video side (SYNGEN, the layer and MO pipelines, the SDRAM graphics path)
+//  keeps running, so the frozen picture stays on screen and the OSD, which
+//  sys_top draws over the core's own video timing, still has a raster to sit
+//  on.  Everything the game can observe is frozen instead: ce_7m to the main
+//  board (68000, DTACK, slapstic), ce_ym/ce_6502 to the JSA board (6502,
+//  YM2151, periodic IRQ, filter), plus `paused` into xybots_main_bus for the
+//  three things video or raw clk_sys would still move (watchdog, VIRQ preset,
+//  X2804 write timer).  Audio falls silent by itself, because the YM2151 and
+//  the filter hold their last sample.
+//
+//  The pause starts and ends only at the /VBLANK assertion edge.  A frame is
+//  263 x 456 x 8 = 959 424 clk_sys, a multiple of 32, so that edge falls on
+//  the same `ce_cnt` phase every frame, and a pause is always a whole number
+//  of frames long.  The game therefore resumes on exactly the raster line,
+//  pixel and enable phase it stopped on.  Apart from the wall-clock gap, the
+//  machine cannot tell it was paused.
+//
 //  ---- reset structure -----------------------------------------------------
 //
 //    init_reset   ~pll_locked ONLY.  Reaches xybots_mem (SDRAM init + loader)
@@ -83,6 +103,10 @@ module xybots_core #(
 	// sees it, SDRAM_CKE drops and it re-enters its 200 us init mid-download and
 	// the loader's writes are lost — a known failure mode in sibling cores.
 	input  logic        init_reset,
+
+	// MiSTer pause request (the OSD is open and the option is on).  Level,
+	// asynchronous to the frame; see "OSD pause" below.
+	input  logic        pause,
 
 	// ---- HPS ioctl ROM download (index 0) ----
 	input  logic        ioctl_download,
@@ -358,6 +382,24 @@ module xybots_core #(
 `endif
 
 	// =====================================================================
+	//  OSD pause (see the header)
+	// =====================================================================
+	// Reset forces `paused` low: fx68k needs its enables running to take a
+	// reset, and the ROM download (which itself opens the OSD) runs under
+	// sys_reset.  After release the pause re-engages on the next /VBLANK edge
+	// if the OSD is still open.
+	logic vblank_q, paused;
+	always_ff @(posedge clk_sys) begin
+		vblank_q <= vid_vblank;
+		if (sys_reset)                     paused <= 1'b0;
+		else if (vid_vblank && !vblank_q)  paused <= pause;
+	end
+
+	wire ce_7m_game   = ce_7m   & ~paused;   // main board: 68000 and bus
+	wire ce_ym_game   = ce_ym   & ~paused;   // JSA board: YM2151, periodic IRQ
+	wire ce_6502_game = ce_6502 & ~paused;   // JSA board: 6502, filter
+
+	// =====================================================================
 	//  Main board — SP-313 sheet 2
 	// =====================================================================
 	logic        snd_cmd_wr, snd_resp_rd, snd_reset;
@@ -372,7 +414,7 @@ module xybots_core #(
 	logic        watchdog_reset, reset_net;
 
 	xybots_main_bus #(.CLK_HZ(57_272_727)) u_main (
-		.clk(clk_sys), .ce_7m(ce_7m),
+		.clk(clk_sys), .ce_7m(ce_7m_game), .paused(paused),
 		// sys_reset, NOT init_reset: the 68000 must be held while the ROMs
 		// stream in, and the watchdog must be parked at POR until then.
 		.init_reset(sys_reset), .por(sys_reset),
@@ -422,7 +464,7 @@ module xybots_core #(
 
 	xybots_jsa #(.SWAP_COINS(1'b1)) u_jsa (
 		.clk(clk_sys), .reset(sys_reset),
-		.ce_6502(ce_6502), .ce_ym(ce_ym),
+		.ce_6502(ce_6502_game), .ce_ym(ce_ym_game),
 
 		.rom_wr(sndrom_wr), .rom_wr_addr(sndrom_addr), .rom_wr_data(sndrom_data),
 

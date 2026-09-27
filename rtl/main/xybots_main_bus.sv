@@ -42,8 +42,14 @@ module xybots_main_bus #(
 	parameter bit  JP2       = 1'b0                  // watchdog disable jumper
 )(
 	input  logic        clk,          // clk_sys 57.272727 MHz
-	input  logic        ce_7m,        // VIDCLK enable, clk_sys / 8
+	input  logic        ce_7m,        // VIDCLK enable, clk_sys / 8 (withheld while paused)
 	input  logic        init_reset,   // FPGA init / ROM not loaded yet
+	// MiSTer OSD pause, from xybots_core.  `ce_7m` already arrives withheld
+	// for the pause; this input freezes the three pieces of main-board state
+	// that the video side, or raw clk_sys, would otherwise move during it:
+	// the watchdog's /VBLANK count, the VIRQ preset into the IRQ1 latch and
+	// the X2804 write timer.  Tie low where there is no pause.
+	input  logic        paused,
 	input  logic        por,          // sheet-1 power-on reset, active high
 
 	// ---- video timing ----
@@ -300,7 +306,7 @@ module xybots_main_bus #(
 	/* verilator lint_on UNUSEDSIGNAL */
 	xybots_watchdog #(.JP2(JP2)) u_wdog (
 		.clk(clk), .por(por | init_reset),
-		.vblank_start(vblank_start), .wdog_clr(wdog_wr),
+		.vblank_start(vblank_start & ~paused), .wdog_clr(wdog_wr),
 		.reset_n(wd_reset_n), .count(wd_count));
 
 	assign watchdog_reset = ~wd_reset_n;
@@ -320,9 +326,11 @@ module xybots_main_bus #(
 	/* verilator lint_on UNUSEDSIGNAL */
 	// `reset` here is POWER-UP ONLY: the 1C 74S74's only clear is /VIDACK, so a
 	// watchdog timeout must not drop a pending IRQ1 (see xybots_irq's header).
+	// While paused the video keeps scanning, so VIRQ is masked here: the
+	// latch keeps the state it had when the pause began.
 	xybots_irq u_irq (
 		.clk(clk), .reset(init_reset),
-		.virq(virq), .v(v), .hblank(hblank), .vblank(vblank),
+		.virq(virq & ~paused), .v(v), .hblank(hblank), .vblank(vblank),
 		.vidack_wr(vidack_wr), .sound_irq(snd_irq),
 		.ipl(ipl), .irq1_pending(irq1_pending));
 
@@ -349,7 +357,7 @@ module xybots_main_bus #(
 	wire [7:0] ee_wr_data  = eeprom_img_wr ? eeprom_img_data : ee_load_data;
 
 	xybots_eeprom_2804 #(.CLK_HZ(CLK_HZ), .WRITE_CYCLES(EE_WRITE_CYCLES)) u_eeprom (
-		.clk(clk), .init_reset(init_reset), .reset(reset_net),
+		.clk(clk), .init_reset(init_reset), .reset(reset_net), .paused(paused),
 		.unlock(unlock_wr), .low_write(low_write), .cpu_we(eeprom_we),
 		.cpu_addr(cpu_a[9:1]), .cpu_wdata(cpu_dout[7:0]), .cpu_rdata(ee_rdata),
 		.busy(ee_busy), .oe_n(ee_oe_n), .unlocked(ee_unlocked),

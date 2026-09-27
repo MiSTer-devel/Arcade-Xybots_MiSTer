@@ -73,6 +73,10 @@ module xybots_eeprom_2804 #(
 	// the part, and brackets one image load: see the power-up erase below.
 	input  logic       init_reset,
 	input  logic       reset,        // the board /RESET net, active high
+	// MiSTer OSD pause (xybots_core): holds the self-timed write countdown so
+	// a write in flight when the game pauses finishes in game time, not
+	// real time.  Tie low where there is no pause.
+	input  logic       paused,
 
 	input  logic       unlock,       // 1-clk pulse: any write to /UNLOCK
 	input  logic       low_write,    // 1-clk pulse: rising /WL, anywhere
@@ -208,7 +212,7 @@ module xybots_eeprom_2804 #(
 		end else if (init_reset) begin
 			busy_ctr <= '0;
 		end else begin
-			if (busy) busy_ctr <= busy_ctr - 1'b1;
+			if (busy && !paused) busy_ctr <= busy_ctr - 1'b1;
 			if (por_we) begin
 				mem[por_addr] <= 8'hFF;      // factory-erased cell
 			end else if (write_accepted) begin

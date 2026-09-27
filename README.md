@@ -92,6 +92,12 @@ from the game's own self-test, reached with the OSD **Service** toggle. Settings
 and high scores persist through MiSTer's *Save Settings*; the MRA declares a
 512-byte NVRAM at index 2.
 
+**Pause when OSD is open** (default On) freezes the game while the OSD is up,
+as in other MiSTer arcade cores. The picture stays on screen and the sound falls
+silent. The freeze starts and ends on a frame boundary, so the game resumes on
+the same scanline and clock phase it stopped on and cannot tell it was paused.
+Turn it Off to let the game run on behind the menu.
+
 The OSD also offers Aspect ratio, Orientation (Original / Flip) and Scale, and an
 **Analog alignment** page — CRT H-Size, CRT H-Position, Analog VGA H-Shift and
 V-Shift, the same four controls as the [Arcade-Toobin_MiSTer](https://github.com/MiSTer-devel/Arcade-Toobin_MiSTer) and [Arcade-Klax_MiSTer](https://github.com/MiSTer-devel/Arcade-Klax_MiSTer) cores — for centring
