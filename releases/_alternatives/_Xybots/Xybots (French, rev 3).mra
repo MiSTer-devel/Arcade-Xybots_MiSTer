@@ -3,7 +3,7 @@
     <setname>xybotsf</setname>
     <rbf>Xybots</rbf>
     <mameversion>0288</mameversion>
-    <mratimestamp>20260906000000</mratimestamp>
+    <mratimestamp>20260926000000</mratimestamp>
     <year>1987</year>
     <manufacturer>Atari Games</manufacturer>
     <region>France</region>
@@ -83,6 +83,8 @@
          calls the knob controls "Turn Left" / "Turn Right"; MAME names the same two
          inputs "Twist Left" / "Twist Right".  The stick is a normal 8 way with an
          independently turning knob, so Turn Left/Right are separate switches and not
-         a stick direction.  Coin is on the JSA sound board (coins are swapped). -->
-    <buttons names="Fire,Turn Left,Turn Right,Start,Coin" default="A,L,R,Start,Select"/>
+         a stick direction.  Start/Zap is the cabinet's legend for the centre
+         button: it starts the game and, in play, fires the zap that stuns every
+         monster in view.  Coin is on the JSA sound board (coins are swapped). -->
+    <buttons names="Fire,Turn Left,Turn Right,Start/Zap,Coin" default="A,L,R,Start,Select"/>
 </misterromdescription>

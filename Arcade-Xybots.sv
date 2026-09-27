@@ -92,9 +92,9 @@ localparam CONF_STR = {
 	"-;",
 	"T[0],Reset;",
 	// Control panel (per player): 8-way stick + Fire + Twist Left + Twist Right
-	// + Start; coins are on the JSA audio board.  See the 0x806100 assembly
+	// + Start/Zap; coins are on the JSA audio board.  See the 0x806100 assembly
 	// below.
-	"J1,Fire,Turn Left,Turn Right,Start,Coin;",
+	"J1,Fire,Turn Left,Turn Right,Start/Zap,Coin;",
 	"jn,A,B,X,Y,R;",
 	"V,v",`BUILD_DATE
 };
@@ -177,11 +177,13 @@ wire reset = RESET | status[0] | buttons[1] | ~pll_locked;
 //   D8  P1 Start    D9  P1 Fire   D10 P1 Turn R   D11 P1 Turn L
 //   D12 P1 Right    D13 P1 Left   D14 P1 Down     D15 P1 Up
 // MiSTer joystick bits: [0]=Right [1]=Left [2]=Down [3]=Up, then the CONF_STR
-// J1 list "Fire,Turn Left,Turn Right,Start,Coin" gives [4]=Fire [5]=Turn Left
-// [6]=Turn Right [7]=Start [8]=Coin — the same order as the MRA's
-// <buttons names="Fire,Turn Left,Turn Right,Start,Coin">, which overrides these
-// labels in the OSD mapping screen.  The knob is two ordinary switches, not a
-// stick direction, so Turn L / Turn R are independent bits.
+// J1 list "Fire,Turn Left,Turn Right,Start/Zap,Coin" gives [4]=Fire [5]=Turn Left
+// [6]=Turn Right [7]=Start/Zap [8]=Coin — the same order as the MRA's
+// <buttons names="Fire,Turn Left,Turn Right,Start/Zap,Coin">, which overrides these
+// labels in the OSD mapping screen.  "Start/Zap" is the cabinet's own legend: the
+// same centre button starts the game and, in play, fires the zap (the manual:
+// it stuns every monster in the player's view).  The knob is two ordinary
+// switches, not a stick direction, so Turn L / Turn R are independent bits.
 wire [15:0] panel = {
 	joystick_0[3], joystick_0[2], joystick_0[1], joystick_0[0],   // D15..D12 P1 Up/Down/Left/Right
 	joystick_0[5], joystick_0[6], joystick_0[4], joystick_0[7],   // D11..D8  P1 TurnL/TurnR/Fire/Start

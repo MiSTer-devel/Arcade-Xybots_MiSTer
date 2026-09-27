@@ -65,8 +65,10 @@ builds the correct memory image from an archive you already own.
 ## Controls
 
 Each player has an 8-way stick with an **independently rotating knob** on top,
-plus a Fire button and a Start button. The knob is two ordinary switches, not a
-stick direction, so it maps to two buttons.
+plus a Fire button and a **Start/Zap** button. The knob is two ordinary switches,
+not a stick direction, so it maps to two buttons. Start/Zap is the cabinet's own
+label: the centre button starts the game, and during play it fires the zap, which
+stuns every monster in the player's view.
 
 | Button | Function |
 | --- | --- |
@@ -74,7 +76,7 @@ stick direction, so it maps to two buttons.
 | A | Fire |
 | L | Turn Left |
 | R | Turn Right |
-| Start | Start |
+| Start | Start/Zap |
 | Select | Coin |
 
 The operator manual's Switch Test page calls the knob switches *Turn Left* /
