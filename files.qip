@@ -69,8 +69,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/main/xybots_main_bus.sv
 # Analysis & Synthesis emits `Info (10905)` naming each .mem file it read, and
 # the RAM summary must show 1024x17 and 336x68 ROMs with those init files.
 #
-# It lives here rather than in Xybots.qsf on purpose: Quartus REWRITES
-# Xybots.qsf on every compile (it appends the fitter's set_location_assignment
+# It lives here rather than in Arcade-Xybots.qsf on purpose: Quartus REWRITES
+# Arcade-Xybots.qsf on every compile (it appends the fitter's set_location_assignment
 # lines), so anything hand-edited there is one `git checkout` away from being
 # silently lost.  files.qip is never rewritten by the tool, and Quartus applies
 # set_global_assignment from a QIP exactly as from the QSF.

@@ -54,7 +54,7 @@ display refuses to lock, that is the first thing to check.
 
 ## Installation
 
-1. Copy `releases/Xybots_YYYYMMDD*.rbf` to `_Arcade/cores/` on the SD card.
+1. Copy `releases/Arcade-Xybots_YYYYMMDD*.rbf` to `_Arcade/cores/` on the SD card.
 2. Copy `releases/Xybots.mra` to `_Arcade/`, and any wanted alternates from
    `releases/_alternatives/` to `_Arcade/_alternatives/`.
 3. Place the matching MAME ROM archive (`xybots.zip`, etc.) in `games/mame/`.
@@ -288,9 +288,10 @@ actually has. It is not planned; it is noted here so the trade-off is on record.
 ## Building
 
 Quartus Prime **17.0.2** (Lite or Standard) — the version MiSTer standardises on;
-`Xybots.qsf` pins it. Open `Xybots.qpf` and run a full compile; the bitstream
-lands in `output_files/Xybots.rbf`, already named for the `<rbf>Xybots</rbf>` the
-MRAs ask for, so there is no rename step.
+`Arcade-Xybots.qsf` pins it. Open `Arcade-Xybots.qpf` and run a full compile; the
+bitstream lands in `output_files/Arcade-Xybots.rbf`. A release adds only the date
+(`releases/Arcade-Xybots_YYYYMMDD.rbf`); the MRAs' `<rbf>Xybots</rbf>` finds it
+because MiSTer retries the name with the `Arcade-` prefix.
 
 Source files are listed in `files.qip`, which Quartus reads but cannot edit — add
 and remove entries by hand. **Never add files through the Quartus GUI**: it
